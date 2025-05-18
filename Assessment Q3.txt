@@ -1,0 +1,45 @@
+    Mac OS X            	   2   q      £                                      ATTR       £   ˜                     ˜     com.apple.provenance  ÿrmÿ[(«
+
+ Account Inactivity Alert
+
+Scenario: The ops team wants to flag accounts with no inflow transactions for over one year.
+Task: Find all active accounts (savings or investments) with no transactions in the last 1 year (365 days) .
+Tables:
+plans_plan
+savings_savingsaccount
+
+
+ANSWER:
+
+
+WITH transactions_last_year AS (
+    SELECT 
+        user_id
+    FROM 
+        savings_savingsaccount
+    WHERE 
+        transaction_time >= DATEADD(day, -365, GETDATE())
+    UNION
+    SELECT 
+        user_id
+    FROM 
+        plans_plan
+    WHERE 
+        transaction_time >= DATEADD(day, -365, GETDATE())
+)
+SELECT 
+    u.id, 
+    u.name 
+FROM 
+    users_customuser u
+WHERE 
+    u.is_active = 1
+    AND u.id NOT IN (SELECT user_id FROM transactions_last_year);
+
+
+EXPLANATION
+
+1. transactions_last_year CTE: Gathers the user IDs of all transactions that occurred within the past year from both savings_savingsaccount and plans_plan tables.
+
+2. Final SELECT: Fetches all active (is_active = 1) user accounts from the users_customuser table, excluding those found in the transactions_last_year CTE.
+

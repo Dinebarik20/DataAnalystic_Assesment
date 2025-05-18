@@ -1,0 +1,61 @@
+    Mac OS X            	   2   q      £                                      ATTR       £   ˜                     ˜     com.apple.provenance  ÿrmÿ[(«
+
+Transaction Frequency Analysis
+
+Scenario: The finance team wants to analyze how often customers transact to segment them (e.g., frequent vs. occasional users).
+
+Task: Calculate the average number of transactions per customer per month and categorize them:
+"High Frequency" (=10 transactions/month)
+"Medium Frequency" (3-9 transactions/month)
+"Low Frequency" (=2 transactions/month)
+Tables:
+users_customuser
+savings_savingsaccount
+
+
+ ANSWER:
+
+
+ WITH monthly_transactions AS (
+    SELECT 
+        user_id, 
+        DATE_TRUNC('month', transaction_time) AS month,
+        COUNT(*) AS transaction_count
+    FROM 
+        savings_savingsaccount
+    GROUP BY 
+        user_id, DATE_TRUNC('month', transaction_time)
+), average_transactions AS (
+    SELECT 
+        user_id,
+        AVG(transaction_count) AS avg_monthly_transactions
+    FROM 
+        monthly_transactions
+    GROUP BY 
+        user_id
+)
+SELECT 
+    u.id,
+    u.name,
+    a.avg_monthly_transactions,
+    CASE 
+        WHEN a.avg_monthly_transactions >= 10 THEN 'High Frequency'
+        WHEN a.avg_monthly_transactions BETWEEN 3 AND 9 THEN 'Medium Frequency'
+        ELSE 'Low Frequency'
+    END AS frequency_category
+FROM 
+    average_transactions a
+JOIN 
+    users_customuser u ON a.user_id = u.id
+ORDER BY 
+    a.avg_monthly_transactions DESC;
+
+
+        EXPLANATION.
+
+1.  monthly_transactions CTE: I Calculates the number of transactions for each customer per month.
+
+2.  average_transactions CTE: I Computes the average number of transactions per month for each customer.
+
+2.  SELECT: And i retrieves customer ID, name, average monthly transactions, and classifies them into "High Frequency," "Medium Frequency," and "Low Frequency" based on their average monthly transactions
+

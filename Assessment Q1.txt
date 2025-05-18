@@ -1,0 +1,48 @@
+    Mac OS X            	   2   q      £                                      ATTR       £   ˜                     ˜     com.apple.provenance  ÿrmÿ[(«
+
+QUESTIONS
+
+1. High-Value Customers with Multiple Products
+Scenario: The business wants to identify customers who have both a savings and an investment plan (cross-selling opportunity).
+Task: Write a query to find customers with at least one funded savings plan AND one funded investment plan, sorted by total deposits.
+Tables:
+users_customuser
+savings_savingsaccount
+plans_plan
+
+
+Answer:
+
+SELECT
+    c.customer_id, 
+    c.customer_name, 
+    SUM(s.deposit_amount + i.deposit_amount) AS total_deposit
+FROM 
+    customers c
+JOIN 
+    savings_plans s ON c.customer_id = s.customer_id AND s.status = 'funded'
+JOIN 
+    investment_plans i ON c.customer_id = i.customer_id AND i.status = 'funded'
+GROUP BY 
+    c.customer_id, c.customer_name
+HAVING 
+    COUNT(DISTINCT s.plan_id) > 0 AND COUNT(DISTINCT i.plan_id) > 0
+ORDER BY 
+    total_deposit DESC;
+
+                              Explanation:
+
+JOINs: I use JOIN to connect the customers, savings_plans, and investment_plans tables based on customer_id.
+
+Conditions: I have to filter the rows where both savings_plans and investment_plans have a status of 'funded'.
+
+SUM: i  calculate the total deposit for each customer by summing up the deposits from both savings_plans and investment_plans.
+
+GROUP BY: i group the results by customer_id and customer_name.
+
+HAVING: We ensure that each customer has at least one funded plan in both savings_plans and investment_plans.
+
+ORDER BY: We sort the results by total_deposit in descending order.
+
+
+

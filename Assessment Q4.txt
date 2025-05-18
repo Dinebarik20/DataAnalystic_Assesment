@@ -1,0 +1,55 @@
+    Mac OS X            	   2   q      £                                      ATTR       £   ò                     ò     com.apple.provenance  ˇrmˇç[(´
+
+ Customer Lifetime Value (CLV) Estimation
+
+Scenario: Marketing wants to estimate CLV based on account tenure and transaction volume (simplified model).
+
+Task: For each customer, assuming the profit_per_transaction is 0.1% of the transaction value, calculate:
+Account tenure (months since signup)
+Total transactions
+Estimated CLV (Assume: CLV = (total_transactions / tenure) * 12 * avg_profit_per_transaction)
+Order by estimated CLV from highest to lowest
+
+
+ANSWER:
+
+WITH transaction_summary AS (
+    SELECT 
+        user_id, 
+        SUM(transaction_amount) AS total_transactions,
+        TIMESTAMPDIFF(MONTH, MIN(register_date), CURRENT_DATE) AS tenure_months
+    FROM 
+        savings_savingsaccount
+    GROUP BY 
+        user_id
+), clv_estimates AS (
+    SELECT 
+        user_id,
+        total_transactions,
+        tenure_months,
+        (total_transactions / tenure_months) * 12 * 0.001 AS estimated_clv
+    FROM 
+        transaction_summary
+)
+SELECT 
+    u.id,
+    u.name,
+    c.estimated_clv
+FROM 
+    users_customuser u
+JOIN 
+    clv_estimates c ON u.id = c.user_id
+WHERE 
+    u.is_active = 1
+ORDER BY 
+    c.estimated_clv DESC;
+
+
+
+EXPLANATION
+
+1. transaction_summary CTE: i use  common table expression calculates the total transaction amount and the account tenure in months for each user.
+
+2. clv_estimates CTE: i use this to calculates the estimated CLV using the formula provided: ((total_transactions / tenure_months) * 12 * 0.001).
+
+3. Final SELECT: and  selects the user ID, name, and estimated CLV from the users_customuser table, filtering to only include active users, and sorting the results by estimated CLV in descending order
